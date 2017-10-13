@@ -1,0 +1,122 @@
+---
+title: "tshw3"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("~/Desktop/tshw3")
+data1=read.csv("data1.csv")
+data2=read.csv("data2.csv")
+library("astsa")
+```
+
+```{r data1}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1,Problem2
+
+time plot of data1.
+It seems not stationary ,since the mean level is changing over time. 
+```{r}
+plot.ts(data1[,2])
+```
+
+
+time plot of data2
+It seems not stationary ,since the mean level is changing over time. 
+```{r}
+plot.ts(data2[,2])
+```
+
+## Problem 3
+
+Identify some possible AR(P) Model.
+
+Take difference on data1 and plot it
+```{r }
+diff.data1=diff(data1[,2])
+plot.ts(diff.data1)
+```
+It seems more stationary.
+
+Since pacf plot significant between 2~5,I choose p=4,5 to bulid the model.
+```{r  }
+acf2(diff.data1)
+```
+
+
+Take difference on data2 and plot it
+```{r  }
+diff.data2=diff(data2[,2])
+plot.ts(diff.data2)
+```
+It seems more stationary.
+
+Since pacf plot significant between 2~5,I choose p=4,5,9 to bulid the model.
+```{r }
+acf2(diff.data2)
+```
+
+
+## Problem 4,5
+
+for data1 ARIMA(4,1,0) model
+The residual plot seems stationary.
+The acf plot shows the residuals has little serial correlation,but the Ljung Box test shows serial correlations when p=8,9.
+```{r  }
+model_data1_p4=arima(data1[,2],order = c(4,1,0))
+tsdiag(model_data1_p4,gof=12)
+```
+
+for data1 ARIMA(5,1,0) model
+The residual plot seems stationary.
+Both Ljung-Box and  acf plot shows the residuals has little serial correlation.
+```{r  }
+model_data1_p5=arima(data1[,2],order = c(5,1,0))
+tsdiag(model_data1_p5,gof=12)
+```
+
+for data2 ARIMA(4,1,0) model
+The residual plot seems stationary.
+The acf plot shows the residuals has little serial correlation,but the Ljung Box test shows serial correlations when lag larger than 4
+```{r  }
+model_data2_p4=arima(data2[,2],order = c(4,1,0))
+tsdiag(model_data2_p4,gof=12)
+```
+
+for data2 ARIMA(5,1,0) model
+The residual plot seems stationary.
+The acf plot shows the residuals has little serial correlation,but the Ljung Box test shows serial correlations when lag larger than 5
+```{r  }
+model_data2_p5=arima(data2[,2],order = c(5,1,0))
+tsdiag(model_data2_p5,gof=12)
+```
+
+for data2 ARIMA(9,1,0) model
+The residual plot seems stationary.
+Both Ljung-Box and  acf plot shows the residuals has little serial correlation.
+```{r  }
+model_data2_p9=arima(data2[,2],order = c(9,1,0))
+tsdiag(model_data2_p9,gof=12)
+```
+
+For data1 we can use the ARIMA(5,1,0) model ,since the residuals of the model is more likely to satisfy the white noise assumption .
+
+For data2 we can use the ARIMA(9,1,0) model ,since the residuals of the model is more likely to satisfy the white noise assumption .
+
+## Problem 6
+```{r  }
+result1= predict(model_data1_p5,n.ahead = 12)
+result1
+plot(1:length(data1[,2]),data1[,2],type='l')
+points(length(data1[,2]):(length(data1[,2])+11),result1$pred,pch='0',cex=0.2)
+```
+
+```{r  }
+result2= predict(model_data2_p9,n.ahead = 12)
+result2
+plot(1:length(data2[,2]),data2[,2],type='l')
+points(length(data2[,2]):(length(data2[,2])+11),result2$pred,pch='0',cex=0.2)
+```
