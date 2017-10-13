@@ -1,0 +1,29 @@
+---
+title: "Hw2"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+setwd("~/Downloads/")
+hw2=read.table(file = "m-dec125910-6111.txt",header = TRUE)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+p value > 0.05 , so we couldn't find evidence to reject the null hypothesis ,coefficient of lag 1 ~ lag 12 are zero.
+
+```{r hw2}
+ts1=ts(data = hw2$dec1)
+Box.test(ts1,lag=12,type = "Ljung")
+```
+
+
+
+
+p value < 0.05  , so we can reject the null hypothesis ,coefficient of lag 1 ~ lag 12 are zero.
+
+```{r}
+ts2=ts(data = hw2$dec10)
+Box.test(ts2,lag=12,type = "Ljung")
+```
+

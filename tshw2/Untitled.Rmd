@@ -1,0 +1,127 @@
+---
+title: "浩瀚資訊R策略"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## 讀取資料
+
+- 移動工作路徑、使用 read.csv 讀入I020、I030資料
+```{r  echo = TRUE,results='hide'}
+setwd("~/Desktop/haohan/20170803_Future_data//")
+I020<-read.csv("Futures_20170803_I020.csv")
+I030<-read.csv("Futures_20170803_I030.csv")
+```
+
+## I020資料欄位命名
+```{r I020,I030,echo = TRUE,tidy=TRUE}
+colnames(I020)<-c("INFO_TIME","MATCH_TIME","PROD","ITEM","PRICE"
+                  ,"QTY","AMOUNT","MATCH_BUY_CNT","MATCH_SELL_CNT")
+```
+- INFO_TIME      :資料傳輸時間
+- MATCH_TIME     :撮合時間
+- PROD           :商品名稱
+- ITEM           :價格註記
+- PRICE          :價格
+- QTY            :量
+- AMOUNT         :總量
+- MATCH_BUY_CNT  :總成交買筆數
+- MATCH_SELL_CNT :總成交賣筆數
+
+## I030資料欄位命名
+```{r,echo=TRUE}
+colnames(I030)<-c("INFO_TIME","PROD","BOrder","BAmount","SOrder","SAmount")
+```
+- INFO_TIME : 資料傳輸時間
+- PROD      : 商品名稱
+- BOrder    : 買筆數
+- BAmount   : 買口數
+- SOrder    : 賣筆數
+- SAmount   : 賣口數
+
+## 取用資料
+```{r echo=TRUE}
+Date <- "20170815"
+A01 <- I020[c(1,4,5)]	
+A02 <- subset(A01, INFO_TIME>=as.numeric(09000000) &
+                INFO_TIME<=as.numeric(11000000))
+B01 <- subset(I030, INFO_TIME>=as.numeric(08300000) &
+                INFO_TIME<=as.numeric(09000000))
+```
+- Date 存成字串"20170815"
+- 取 I020 的1,4,5行 
+- 取 A01中 符合時間在9點到11點的資料出來 
+- 取 I030中 符合時間在8點半到9點的資料出來
+
+## 趨勢判斷
+- 使用B01資料（買賣單量、買賣口數的資料）判斷趨勢
+```{r  echo = TRUE}
+if( B01[nrow(B01),]$BAmount / B01[nrow(B01),]$BOrder 
+    > B01[nrow(B01),]$SAmount / B01[nrow(B01),]$SOrder ){
+	trend ="B"
+}else if ( B01[nrow(B01),]$BAmount / B01[nrow(B01),]$BOrder
+           < B01[nrow(B01),]$SAmount / B01[nrow(B01),]$SOrder ){
+	trend ="S"
+}else{
+	stop("NO Trend")
+}
+```
+- nrow() 函數會回報該資料表或矩陣有幾個row
+- 比較 買口數/買單量、 賣口數/賣單量 大小
+
+## 定義進場時間、進場價
+
+```{r echo=TRUE}
+OrderTime <- A02[1,]$INFO_TIME
+OrderPrice <- A02[1,]$PRICE
+```
+- 開盤後第一筆成交時間、價格定義為進場價及進場時間
+
+## 平倉機制
+
+- 交易時間結束
+- 到達停損點
+
+```{r echo=TRUE}
+for( i in 1:nrow(A02)){
+	if(trend=="B"){
+		if(A02[i,]$PRICE < OrderPrice-20){
+			CoveryTime <- A02[nrow(A02),]$INFO_TIME
+			CoveryPrice <- A02[nrow(A02),]$PRICE
+			break
+		} 
+	}else if(trend=="S"){
+		if(A02[i,]$PRICE > OrderPrice-20){
+			CoveryTime <- A02[nrow(A02),]$INFO_TIME
+			CoveryPrice <- A02[nrow(A02),]$PRICE
+			break
+		}
+	}
+
+	#出場時間到，進行出場
+	if(i == nrow(A02)){
+		CoveryTime <- A02[nrow(A02),]$INFO_TIME
+		CoveryPrice <- A02[nrow(A02),]$PRICE
+	}
+}
+```
+- 若趨勢判斷是B，則跌超過20點平倉
+- 若趨勢判斷是S，則漲超過20點平倉
+- 時間點到平倉
+
+## 顯示當日績效
+```{r echo=TRUE}
+if(trend=="B"){
+	cat("BUY TIME:",OrderTime,"PRICE:",OrderPrice,"COVERY
+	    TIME:",CoveryTime,"C_PRICE:",CoveryPrice,"PROFIT",
+	    CoveryPrice-OrderPrice,'\n')
+}else{
+	cat("SELL TIME:",OrderTime,"PRICE:",OrderPrice,"COVERY
+	    TIME:",CoveryTime,"C_PRICE:",CoveryPrice,"PROFIT",
+	    OrderPrice-CoveryPrice,'\n')
+}
+```
+
