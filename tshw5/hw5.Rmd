@@ -1,0 +1,79 @@
+---
+title: "Time Series hw5"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tseries)
+library(astsa)
+series1=read.table("arima1.txt")
+series2=read.table("arima2.txt")
+rwalk=read.table("randomwalk.txt")
+```
+
+1. arima1 
+not stationary
+```{r series1}
+plot.ts(series1$x)
+```
+
+D=1 seems stationary.
+```{r }
+plot.ts(diff(series1$x))
+```
+
+seems stationary
+```{r }
+adf.test(diff(series1$x),alternative="stationary",k=20)
+```
+
+the residuals for (p,d,q)=(3,1,3) seems reasonable.
+```{r }
+acf2(diff(series1$x))
+res1=arima(series1$x,c(3,1,3))
+tsdiag(res1)
+```
+
+2. arima2
+not stationary
+```{r series2}
+plot.ts(series2)
+```
+
+D=2 seems stationary.
+```{r }
+plot.ts(diff(diff(series2$x)))
+```
+
+seems stationary
+```{r }
+adf.test(diff(diff(series2$x)),alternative="stationary",k=20)
+```
+
+the residuals for (p,d,q)=(2,2,3) seems reasonable.
+```{r }
+acf2(diff(series2$x))
+res2=arima(series2$x,c(3,1,3))
+tsdiag(res2)
+```
+
+3. Random walk
+```{r rwalk}
+plot.ts(rwalk)
+```
+
+the residual violate the assumption of white noise
+```{r}
+time=1:500
+tsdiag(arima(rwalk,order=c(0,0,0),xreg=time))
+```
+
+can't reject null hypothesis under significance level 0.05.
+```{r}
+adf.test(rwalk$x,alternative="stationary",k=1)
+```
+
+The model fits well,since the residuals seems reasonable.
+```{r}
+tsdiag(arima(rwalk,order=c(0,1,0),xreg=time))
+```
