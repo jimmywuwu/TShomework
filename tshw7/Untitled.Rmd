@@ -1,0 +1,72 @@
+---
+title: "tshw7"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(fGarch)
+library(astsa)
+data_1=read.table("d-spy-0111.txt",header=TRUE)
+data_3=read.table("d-pg-0111.txt",header=TRUE)
+data_5=read.table("m-ko-6111.txt",header=TRUE)
+```
+
+
+
+```{r}
+#1 
+x1=log(1+data_1$rtn)
+t.test(x1)
+
+Box.test(x1,lag=10)
+xx1=x1-mean(x1)
+source("archTest.R")
+archTest(xx1,12)
+
+model1 = garchFit(~garch(2,1), dta=x1)
+summary(model1)
+res = residuals(model1, standardize=T)
+vol = volatility(model1)
+Box.test(res/vol, type='Ljung', lag=10)
+qqnorm(res/vol)
+
+model2 = garchFit(~garch(2,1), dta=x1,cond.dist="std")
+summary(model2)
+res = residuals(model2, standardize=T)
+vol = volatility(model2)
+Box.test(res/vol, type='Ljung', lag=10)
+
+#3 
+
+x3=log(1+data_3$rtn)
+t.test(x3)
+
+Box.test(x1,lag=10)
+xx3=x3-mean(x3)
+archTest(xx3,12)
+
+model3= garchFit(~garch(2,1), dta=x3)
+summary(model3)
+res = residuals(model3, standardize=T)
+vol = volatility(model3)
+Box.test(res/vol, type='Ljung', lag=10)
+qqnorm(res/vol)
+
+
+
+#5
+x5=log(1+data_5$ko)
+t.test(x5)
+
+Box.test(x5,lag=10)
+xx5=x5-mean(x5)
+archTest(xx5,12)
+
+acf2(diff(x5))
+ts.plot(diff(x5))
+model5=arima(x5,order = c(6,1,1))
+archTest(model5$residuals*100)
+```
+
+
